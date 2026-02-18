@@ -45,6 +45,12 @@ export async function probeTelegram(
         break;
       } catch (err) {
         fetchError = err;
+        const cause = err instanceof Error && "cause" in err ? (err as { cause: unknown }).cause : undefined;
+        console.error(
+          `[telegram/probe] getMe attempt ${i + 1}/3 failed: ${err instanceof Error ? err.message : String(err)}` +
+          (cause ? ` | cause: ${cause instanceof Error ? `${cause.constructor.name}: ${cause.message}` : String(cause)}` : "") +
+          ` | timeoutMs=${timeoutMs} | proxy=${proxyUrl ?? "none"}`
+        );
         if (i < 2) {
           await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
         }
@@ -110,6 +116,11 @@ export async function probeTelegram(
     result.elapsedMs = Date.now() - started;
     return result;
   } catch (err) {
+    const cause = err instanceof Error && "cause" in err ? (err as { cause: unknown }).cause : undefined;
+    console.error(
+      `[telegram/probe] probe failed after all retries: ${err instanceof Error ? err.message : String(err)}` +
+      (cause ? ` | cause: ${cause instanceof Error ? `${cause.constructor.name}: ${cause.message}` : String(cause)}` : "")
+    );
     return {
       ...result,
       status: err instanceof Response ? err.status : result.status,
