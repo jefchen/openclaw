@@ -3,6 +3,142 @@
 - Repo: https://github.com/openclaw/openclaw
 - GitHub issues/comments/PR comments: use literal multiline strings or `-F - <<'EOF'` (or $'...') for real newlines; never embed "\\n".
 
+## Architecture Overview
+
+OpenClaw is a **personal AI assistant** that runs on your own devices and answers you on messaging channels you already use. It's a TypeScript monorepo (Node 22+, ESM) with a gateway control plane, multi-agent runtime, and channel integrations.
+
+### High-Level Data Flow
+
+```
+Inbound message (Telegram/Discord/Slack/WhatsApp/Signal/iMessage/Web/...)
+  → Channel adapter normalizes message
+  → Gateway routing resolves agent + session key
+  → Agent executes (Pi embedded runner) with tools
+  → Outbound delivery formats reply per channel
+  → Channel adapter sends reply
+```
+
+### Core Components
+
+**Gateway** (`src/gateway/`) — WebSocket-based RPC server; the control plane.
+
+- `server.impl.ts` — Server startup: loads config, starts channel health monitor, config reloader, heartbeat runner, cron service, WebSocket handlers, gateway discovery, plugins.
+- `server-methods.ts` — RPC handler registry (agent, chat, send, channels, sessions, config, cron, wizard, etc.).
+- `boot.ts` — Boot sequence including BOOT.md execution.
+- Exposes 50+ RPC methods for agent runs, chat, message sending, channel status, config management, cron, exec approvals, and more.
+
+**Agents** (`src/agents/`) — AI agent runtime and orchestration.
+
+- `pi-embedded-runner/run.ts` — Main execution loop: session key, agent config, system prompt, message history, tool list → model call → tool execution → response.
+- `pi-embedded-runner/system-prompt.ts` — Builds agent system prompt (identity, personality, context).
+- `pi-embedded-runner/history.ts` — Session history management with compaction.
+- `openclaw-tools.ts` — Assembles the tool list for an agent run.
+- `model-selection.ts` — Model resolution: param override > agent config > defaults. Supports primary + fallback chain, `provider/model` format.
+- `agent-scope.ts` / `resolveAgentScope.ts` — Resolves agent ID, model, skills, workspace, agent directory.
+
+**Subagents** (`src/agents/subagent-*.ts`) — Child agent spawning for delegated async work.
+
+- `subagent-spawn.ts` — `spawnSubagentDirect()`: validates spawn depth (default max 1), active child limit (default max 5), cross-agent permissions (`allowAgents`). Creates session `agent:{targetId}:subagent:{uuid}`. Returns accepted/forbidden/error.
+- `subagent-registry.ts` — Tracks active runs (`SubagentRunRecord`): runId, childSessionKey, cleanup, outcome. Persisted to disk.
+- `subagent-announce.ts` — Routes completion back to parent session. Exponential backoff retry (1s → 8s, max 3 retries, 5 min expiry).
+- `subagent-depth.ts` — Depth stored in session store, incremented per spawn level.
+
+**Tools** (`src/agents/tools/`) — ~70 tool implementations available to agents.
+
+- `message-tool.ts` — Core messaging (send, reply, thread-reply, broadcast with text/media/components).
+- `sessions-spawn-tool.ts` — Spawn subagents.
+- `sessions-send-tool.ts` — Agent-to-agent communication.
+- `web-fetch.ts`, `web-search.ts` — HTTP requests (with SSRF protection) and search.
+- `browser-tool.ts` — Headless browser automation.
+- `image-tool.ts` — Image processing/analysis.
+- `cron-tool.ts` — Scheduled tasks.
+- `memory-tool.ts` — Persistent memory.
+- `canvas-tool.ts` — Live canvas rendering.
+- `discord-actions.ts`, `telegram-actions.ts`, `slack-actions.ts`, `whatsapp-actions.ts` — Channel-specific tools.
+- `common.ts` — Shared utilities: `ToolInputError`, `ActionGate`, parameter readers.
+
+**Channels** (`src/channels/`, `src/telegram/`, `src/discord/`, `src/slack/`, `src/signal/`, `src/imessage/`, `src/whatsapp/`, `src/web/`) — Messaging platform integrations.
+
+- `src/channels/plugins/types.plugin.ts` — `ChannelPlugin` interface: the contract all channels implement.
+- `src/channels/plugins/types.adapters.ts` — Adapter interfaces: `ChannelConfigAdapter`, `ChannelOutboundAdapter`, `ChannelMessagingAdapter`, `ChannelGatewayAdapter`, `ChannelStatusAdapter`.
+- `src/channels/plugins/dock.ts` — `ChannelDock`: central registry connecting config to capabilities.
+- `src/channels/plugins/registry.ts` — Lists core channels: telegram, whatsapp, discord, irc, googlechat, slack, signal, imessage.
+- Each channel dir has: bot handlers, message normalizers (`normalize/*.ts`), outbound adapters (`outbound/*.ts`), gateway adapters.
+
+**Routing** (`src/routing/`) — Maps inbound messages to agents.
+
+- `resolve-route.ts` — `resolveAgentRoute()`: evaluates bindings by priority (direct peer > guild+roles > guild > team > account > channel > default).
+- `bindings.ts` — Binding configuration (match channel, accountId, with wildcard support).
+- `session-key.ts` — Session key format: `agent:{agentId}:{channel}:{peer}:{accountId}`. Supports DM scope modes: main, per-peer, per-channel-peer, per-account-channel-peer.
+
+**Config** (`src/config/`) — Configuration system (~144 files).
+
+- `io.ts` — Config loading/writing; `loadConfig()`.
+- `zod-schema.core.ts` — Core config Zod schema.
+- `zod-schema.agents.ts` — Agent config validation.
+- `types.agents.ts` — `AgentConfig`: id, name, workspace, model (primary + fallbacks), skills, identity, groupChat, subagents, sandbox, tools.
+- `types.agent-defaults.ts` — Default agent settings (model, tools, streaming).
+- `defaults.ts` — System defaults.
+- `types.tools.ts` — Tool enable/disable policies per channel.
+- Channel-specific config: `types.telegram.ts`, `types.discord.ts`, `types.slack.ts`, etc.
+
+**Infrastructure** (`src/infra/`) — Cross-cutting concerns.
+
+- `agent-events.ts` — Event emission/subscription for agent runs (`emitAgentEvent`, `onAgentEvent`).
+- `outbound/deliver.ts` — Multi-channel delivery orchestration.
+- `outbound/delivery-queue.ts` — Async delivery with ack/fail tracking.
+- `outbound/targets.ts` — Recipient resolution.
+- `heartbeat-runner.ts` — Periodic agent health runs.
+- `exec-approvals.ts` — Authorization for sensitive operations.
+- `retry.ts` — Exponential backoff / circuit breaker.
+- `node-shell.ts` — Shell execution with sandboxing.
+
+**Extensions** (`extensions/`) — ~39 plugin packages.
+
+- Channel plugins: telegram, discord, slack, whatsapp, signal, imessage, msteams, matrix, zalo, etc.
+- Memory plugins: memory-core, memory-lancedb.
+- Auth plugins: google-antigravity-auth, google-gemini-cli-auth, minimax-portal-auth, qwen-portal-auth.
+- Feature plugins: llm-task, voice-call, talk-voice, diagnostics-otel.
+- Each extension: `index.ts` (entry), `openclaw.plugin.json` (manifest), `src/`, `package.json`.
+- Plugin SDK: `src/plugin-sdk/index.ts` — exports `ChannelPlugin`, `OpenClawPluginApi`, adapter types.
+
+**Skills** (`skills/`) — ~52 skill bundles.
+
+- Each skill: `SKILL.md` descriptor + scripts/references.
+- Categories: infrastructure (coding-agent, healthcheck), communication (discord, slack, github), media (camsnap, video-frames, tts), productivity (notion, obsidian, apple-reminders), utilities (weather, 1password, spotify).
+
+**CLI** (`src/cli/`, `src/commands/`) — Command-line interface.
+
+- `src/commands/agent.ts` — Run an agent session.
+- `src/commands/agents.ts` — CRUD agent management (add/delete/list/identity).
+- `src/commands/channels.ts` — Channel management (add/remove/list/status/logs).
+- `src/commands/configure.ts` — Gateway/daemon/channel configuration.
+- `src/commands/status.ts` — System status dashboard.
+- `src/commands/doctor-*.ts` — Diagnostics (auth, workspace, gateway health).
+- `src/commands/models.ts` — Model listing/management.
+
+**Apps** (`apps/`) — Native companion apps.
+
+- `apps/macos/` — Swift macOS app (menubar gateway, voice wake).
+- `apps/ios/` — Swift iOS app (chat, canvas, voice).
+- `apps/android/` — Kotlin Android app (Gradle build).
+- `apps/shared/` — Cross-platform shared code (ChatController, VoiceWakeManager, CanvasController, LocationCaptureManager).
+
+**Web UI** (`ui/`) — Lit web components for gateway control.
+
+- `ui/src/ui/views/` — Chat, config, channels, exec-approval, logs, debug screens.
+- `ui/src/ui/controllers/` — Agent, skill, channel, nodes, presence, logs management.
+- `ui/src/ui/chat/` — Message normalization, tool helpers, markdown.
+- Built with Vite; connects to gateway via WebSocket.
+
+### Key Patterns
+
+- **Session keys** encode the full context: `agent:{agentId}:{channel}:{peerKind}:{peerId}:{accountId}`.
+- **Tool execution**: agent calls tool → tool validates params → executes → returns result. Subagent spawn is async/non-blocking; completion comes via announcement queue.
+- **Plugin system**: extensions implement `ChannelPlugin` adapters, register via `api.registerChannel()`, loaded by `PluginRegistry`.
+- **Config resolution**: YAML/JSON → Zod schema validation → env var substitution → per-agent/per-channel/global defaults merge.
+- **Multi-agent**: each agent has its own session, model, tools, identity. Subagent spawns are depth-limited and tracked in a registry with cleanup guards.
+
 ## Project Structure & Module Organization
 
 - Source code: `src/` (CLI wiring in `src/cli`, commands in `src/commands`, web provider in `src/provider-web.ts`, infra in `src/infra`, media pipeline in `src/media`).
