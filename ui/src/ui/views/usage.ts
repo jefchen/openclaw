@@ -30,6 +30,7 @@ import {
   renderSessionsCard,
   renderUsageInsights,
 } from "./usage-render-overview.ts";
+import { renderSystemStatus } from "./usage-system-status.ts";
 import { usageStylesString } from "./usageStyles.ts";
 import {
   SessionLogEntry,
@@ -451,6 +452,8 @@ export function renderUsage(props: UsageProps) {
       <div class="usage-page-title">Usage</div>
       <div class="usage-page-subtitle">See where tokens go, when sessions spike, and what drives cost.</div>
     </section>
+
+    ${renderSystemStatus(props.onRefresh)}
 
     <section class="card usage-header ${props.headerPinned ? "pinned" : ""}">
       <div class="usage-header-row">
