@@ -100,6 +100,9 @@ export function buildCronPayload(form: CronFormState) {
     }
     return { kind: "systemEvent" as const, text };
   }
+  if (form.payloadKind === "usageReport") {
+    return { kind: "usageReport" as const };
+  }
   const message = form.payloadText.trim();
   if (!message) {
     throw new Error("Agent message required.");

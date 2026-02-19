@@ -27,7 +27,7 @@ export type CronFormState = {
   cronTz: string;
   sessionTarget: "main" | "isolated";
   wakeMode: "next-heartbeat" | "now";
-  payloadKind: "systemEvent" | "agentTurn";
+  payloadKind: "systemEvent" | "agentTurn" | "usageReport";
   payloadText: string;
   deliveryMode: "none" | "announce" | "webhook";
   deliveryChannel: string;

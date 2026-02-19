@@ -5,6 +5,8 @@ import type {
   SessionsUsageTotals,
   SessionUsageTimePoint,
 } from "../usage-types.ts";
+import type { UsageLiveRun } from "./usage-live.ts";
+import type { BreakdownTab } from "./usage-render-breakdown.ts";
 
 export type UsageSessionEntry = SessionsUsageEntry;
 export type UsageTotals = SessionsUsageTotals;
@@ -92,6 +94,10 @@ export type UsageProps = {
   onSessionSortDirChange: (dir: "asc" | "desc") => void;
   onSessionsTabChange: (tab: "all" | "recent") => void;
   onToggleColumn: (column: UsageColumnId) => void;
+  breakdownTab: BreakdownTab;
+  onBreakdownTabChange: (tab: BreakdownTab) => void;
+  liveRuns: UsageLiveRun[];
+  activeCronRunCount: number;
 };
 
 export type SessionLogEntry = {

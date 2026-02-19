@@ -449,7 +449,8 @@ export type CronPayload =
       message: string;
       thinking?: string;
       timeoutSeconds?: number;
-    };
+    }
+  | { kind: "usageReport"; daysBack?: number };
 
 export type CronDelivery = {
   mode: "none" | "announce" | "webhook";

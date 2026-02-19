@@ -1,5 +1,6 @@
 import { html, nothing } from "lit";
 import { extractQueryTerms, filterSessionsByQuery } from "../usage-helpers.ts";
+import { renderUsageLive } from "./usage-live.ts";
 import {
   buildAggregatesFromSessions,
   buildPeakErrorHours,
@@ -22,6 +23,7 @@ import {
   removeQueryToken,
   setQueryTokensForKey,
 } from "./usage-query.ts";
+import { renderBreakdownCard } from "./usage-render-breakdown.ts";
 import { renderEmptyDetailState, renderSessionDetailPanel } from "./usage-render-details.ts";
 import {
   renderCostBreakdownCompact,
@@ -455,6 +457,8 @@ export function renderUsage(props: UsageProps) {
 
     ${renderSystemStatus(props.onRefresh)}
 
+    ${renderUsageLive({ activeRuns: props.liveRuns, activeCronRuns: props.activeCronRunCount })}
+
     <section class="card usage-header ${props.headerPinned ? "pinned" : ""}">
       <div class="usage-header-row">
         <div class="usage-header-title">
@@ -780,6 +784,7 @@ export function renderUsage(props: UsageProps) {
             props.onSelectDay,
           )}
           ${displayTotals ? renderCostBreakdownCompact(displayTotals, props.chartMode) : nothing}
+          ${renderBreakdownCard(props.aggregates, props.chartMode, props.breakdownTab, props.onBreakdownTabChange)}
         </div>
       </div>
       <div class="usage-grid-right">

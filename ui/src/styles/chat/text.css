@@ -2,11 +2,73 @@
    CHAT TEXT STYLING
    ============================================= */
 
-.chat-thinking {
+.chat-thinking-details {
   margin-bottom: 10px;
-  padding: 10px 12px;
-  border-radius: 10px;
   border: 1px dashed rgba(255, 255, 255, 0.18);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+:root[data-theme="light"] .chat-thinking-details {
+  border-color: rgba(16, 24, 40, 0.25);
+}
+
+.chat-thinking-summary {
+  cursor: pointer;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  user-select: none;
+  list-style: none;
+}
+
+.chat-thinking-summary::-webkit-details-marker {
+  display: none;
+}
+
+.chat-thinking-summary::before {
+  content: "▸";
+  font-size: 10px;
+  transition: transform var(--transition-fast);
+}
+
+.chat-thinking-details[open] > .chat-thinking-summary::before {
+  transform: rotate(90deg);
+}
+
+.chat-thinking-summary:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+:root[data-theme="light"] .chat-thinking-summary:hover {
+  background: rgba(16, 24, 40, 0.04);
+}
+
+.chat-thinking-label {
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 10px;
+}
+
+.chat-thinking-preview {
+  opacity: 0.6;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.chat-thinking-details[open] .chat-thinking-preview {
+  display: none;
+}
+
+.chat-thinking {
+  padding: 10px 12px;
   background: rgba(255, 255, 255, 0.04);
   color: var(--muted);
   font-size: 12px;
@@ -14,7 +76,6 @@
 }
 
 :root[data-theme="light"] .chat-thinking {
-  border-color: rgba(16, 24, 40, 0.25);
   background: rgba(16, 24, 40, 0.04);
 }
 

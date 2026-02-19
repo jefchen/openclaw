@@ -243,8 +243,26 @@ function handleGatewayEventUnsafe(host: GatewayHost, evt: GatewayEventFrame) {
     return;
   }
 
-  if (evt.event === "cron" && host.tab === "cron") {
-    void loadCron(host as unknown as Parameters<typeof loadCron>[0]);
+  if (evt.event === "cron") {
+    const cronPayload = evt.payload as
+      | { jobId?: string; jobName?: string; action?: string; runAtMs?: number; sessionKey?: string }
+      | undefined;
+    if (cronPayload?.action === "started" && cronPayload.jobId) {
+      host.activeCronRuns = [
+        ...host.activeCronRuns.filter((r) => r.jobId !== cronPayload.jobId),
+        {
+          jobId: cronPayload.jobId,
+          jobName: cronPayload.jobName ?? cronPayload.jobId,
+          startedAt: cronPayload.runAtMs ?? Date.now(),
+          sessionKey: cronPayload.sessionKey,
+        },
+      ];
+    } else if (cronPayload?.action === "finished" && cronPayload.jobId) {
+      host.activeCronRuns = host.activeCronRuns.filter((r) => r.jobId !== cronPayload.jobId);
+    }
+    if (host.tab === "cron") {
+      void loadCron(host as unknown as Parameters<typeof loadCron>[0]);
+    }
   }
 
   if (evt.event === "device.pair.requested" || evt.event === "device.pair.resolved") {

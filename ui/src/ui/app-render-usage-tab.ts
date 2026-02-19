@@ -154,6 +154,21 @@ export function renderUsageTab(state: AppViewState) {
     onSessionsTabChange: (tab) => {
       state.usageSessionsTab = tab;
     },
+    breakdownTab: state.usageBreakdownTab,
+    onBreakdownTabChange: (tab) => {
+      state.usageBreakdownTab = tab;
+    },
+    liveRuns: state.chatRunId
+      ? [
+          {
+            runId: state.chatRunId,
+            sessionKey: state.sessionKey,
+            startedAt: state.chatStreamStartedAt ?? Date.now(),
+            toolsActive: 0,
+          },
+        ]
+      : [],
+    activeCronRunCount: state.activeCronRuns.length,
     onToggleColumn: (column) => {
       if (state.usageVisibleColumns.includes(column)) {
         state.usageVisibleColumns = state.usageVisibleColumns.filter((entry) => entry !== column);

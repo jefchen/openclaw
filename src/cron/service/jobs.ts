@@ -450,6 +450,13 @@ function mergeCronPayload(existing: CronPayload, patch: CronPayloadPatch): CronP
     return { kind: "systemEvent", text };
   }
 
+  if (patch.kind === "usageReport") {
+    if (existing.kind !== "usageReport") {
+      return buildPayloadFromPatch(patch);
+    }
+    return { kind: "usageReport", daysBack: patch.daysBack ?? existing.daysBack };
+  }
+
   if (existing.kind !== "agentTurn") {
     return buildPayloadFromPatch(patch);
   }
@@ -532,6 +539,10 @@ function buildPayloadFromPatch(patch: CronPayloadPatch): CronPayload {
       throw new Error('cron.update payload.kind="systemEvent" requires text');
     }
     return { kind: "systemEvent", text: patch.text };
+  }
+
+  if (patch.kind === "usageReport") {
+    return { kind: "usageReport", daysBack: patch.daysBack };
   }
 
   if (typeof patch.message !== "string" || patch.message.length === 0) {

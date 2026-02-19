@@ -65,7 +65,8 @@ export type CronPayload =
       channel?: CronMessageChannel;
       to?: string;
       bestEffortDeliver?: boolean;
-    };
+    }
+  | { kind: "usageReport"; daysBack?: number };
 
 export type CronPayloadPatch =
   | { kind: "systemEvent"; text?: string }
@@ -80,7 +81,8 @@ export type CronPayloadPatch =
       channel?: CronMessageChannel;
       to?: string;
       bestEffortDeliver?: boolean;
-    };
+    }
+  | { kind: "usageReport"; daysBack?: number };
 
 export type CronJobState = {
   nextRunAtMs?: number;

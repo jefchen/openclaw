@@ -116,6 +116,27 @@
   margin-top: 4px;
 }
 
+.chat-tool-card--active {
+  border-color: var(--accent);
+  animation: tool-active-pulse 2s ease-in-out infinite;
+}
+
+@keyframes tool-active-pulse {
+  0%, 100% { border-color: var(--accent); }
+  50% { border-color: rgba(255, 92, 92, 0.3); }
+}
+
+.chat-tool-card__active-label {
+  font-size: 12px;
+  color: var(--accent);
+  margin-top: 4px;
+  font-family: var(--mono);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .chat-tool-card__detail {
   font-size: 12px;
   color: var(--muted);

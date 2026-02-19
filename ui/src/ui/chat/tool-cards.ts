@@ -48,10 +48,45 @@ export function extractToolCards(message: unknown): ToolCard[] {
   return cards;
 }
 
-export function renderToolCardSidebar(card: ToolCard, onOpenSidebar?: (content: string) => void) {
+function resolveActiveLabel(card: ToolCard): string | null {
+  if (card.kind !== "call") {
+    return null;
+  }
+  const args = card.args as Record<string, unknown> | null | undefined;
+  if (!args || typeof args !== "object") {
+    return null;
+  }
+  const name = card.name.toLowerCase();
+  if (name === "write" || name === "edit") {
+    const filePath = (args.file_path ?? args.path) as string | undefined;
+    if (filePath) {
+      return `Writing: ${filePath}`;
+    }
+  }
+  if (name === "bash" || name === "shell") {
+    const cmd = (args.command ?? args.cmd) as string | undefined;
+    if (cmd) {
+      return `Running: ${cmd.slice(0, 80)}${cmd.length > 80 ? "..." : ""}`;
+    }
+  }
+  if (name === "read") {
+    const filePath = (args.file_path ?? args.path) as string | undefined;
+    if (filePath) {
+      return `Reading: ${filePath}`;
+    }
+  }
+  return null;
+}
+
+export function renderToolCardSidebar(
+  card: ToolCard,
+  onOpenSidebar?: (content: string) => void,
+  isActive?: boolean,
+) {
   const display = resolveToolDisplay({ name: card.name, args: card.args });
   const detail = formatToolDetail(display);
   const hasText = Boolean(card.text?.trim());
+  const activeLabel = isActive ? resolveActiveLabel(card) : null;
 
   const canClick = Boolean(onOpenSidebar);
   const handleClick = canClick
@@ -74,7 +109,7 @@ export function renderToolCardSidebar(card: ToolCard, onOpenSidebar?: (content: 
 
   return html`
     <div
-      class="chat-tool-card ${canClick ? "chat-tool-card--clickable" : ""}"
+      class="chat-tool-card ${canClick ? "chat-tool-card--clickable" : ""} ${isActive ? "chat-tool-card--active" : ""}"
       @click=${handleClick}
       role=${canClick ? "button" : nothing}
       tabindex=${canClick ? "0" : nothing}
@@ -102,7 +137,8 @@ export function renderToolCardSidebar(card: ToolCard, onOpenSidebar?: (content: 
         }
         ${isEmpty && !canClick ? html`<span class="chat-tool-card__status">${icons.check}</span>` : nothing}
       </div>
-      ${detail ? html`<div class="chat-tool-card__detail">${detail}</div>` : nothing}
+      ${activeLabel ? html`<div class="chat-tool-card__active-label">${activeLabel}</div>` : nothing}
+      ${detail && !activeLabel ? html`<div class="chat-tool-card__detail">${detail}</div>` : nothing}
       ${
         isEmpty
           ? html`

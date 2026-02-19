@@ -1,5 +1,6 @@
 import type { HeartbeatRunResult } from "../../infra/heartbeat-wake.js";
 import { DEFAULT_AGENT_ID } from "../../routing/session-key.js";
+import { generateDailyUsageReport } from "../daily-usage-report.js";
 import { resolveCronDeliveryPlan } from "../delivery.js";
 import { sweepCronRunSessions } from "../session-reaper.js";
 import type { CronJob, CronRunOutcome, CronRunStatus, CronRunTelemetry } from "../types.js";
@@ -241,7 +242,7 @@ export async function onTimer(state: CronServiceState) {
     for (const { id, job } of dueJobs) {
       const startedAt = state.deps.nowMs();
       job.state.runningAtMs = startedAt;
-      emit(state, { jobId: job.id, action: "started", runAtMs: startedAt });
+      emit(state, { jobId: job.id, jobName: job.name, action: "started", runAtMs: startedAt });
 
       const configuredTimeoutMs =
         job.payload.kind === "agentTurn" && typeof job.payload.timeoutSeconds === "number"
@@ -456,6 +457,35 @@ async function executeJobCore(
   state: CronServiceState,
   job: CronJob,
 ): Promise<CronRunOutcome & CronRunTelemetry> {
+  // Usage report: generate and enqueue as system event on the main session
+  if (job.payload.kind === "usageReport") {
+    try {
+      const daysBack = job.payload.daysBack ?? 1;
+      const report = await generateDailyUsageReport(daysBack);
+      state.deps.enqueueSystemEvent(report, {
+        agentId: job.agentId,
+        sessionKey: job.sessionKey,
+        contextKey: `cron:${job.id}`,
+      });
+      if (job.wakeMode === "now" && state.deps.runHeartbeatOnce) {
+        await state.deps.runHeartbeatOnce({
+          reason: `cron:${job.id}`,
+          agentId: job.agentId,
+          sessionKey: job.sessionKey,
+        });
+      } else {
+        state.deps.requestHeartbeatNow({
+          reason: `cron:${job.id}`,
+          agentId: job.agentId,
+          sessionKey: job.sessionKey,
+        });
+      }
+      return { status: "ok", summary: report.slice(0, 200) };
+    } catch (err) {
+      return { status: "error", error: `Usage report failed: ${String(err)}` };
+    }
+  }
+
   if (job.sessionTarget === "main") {
     const text = resolveJobPayloadTextForMain(job);
     if (!text) {
@@ -584,7 +614,7 @@ export async function executeJob(
   const startedAt = state.deps.nowMs();
   job.state.runningAtMs = startedAt;
   job.state.lastError = undefined;
-  emit(state, { jobId: job.id, action: "started", runAtMs: startedAt });
+  emit(state, { jobId: job.id, jobName: job.name, action: "started", runAtMs: startedAt });
 
   let coreResult: {
     status: CronRunStatus;

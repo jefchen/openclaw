@@ -325,6 +325,7 @@ export function renderApp(state: AppViewState) {
                 channelMeta: state.channelsSnapshot?.channelMeta ?? [],
                 runsJobId: state.cronRunsJobId,
                 runs: state.cronRuns,
+                activeCronRuns: state.activeCronRuns,
                 onFormChange: (patch) =>
                   (state.cronForm = normalizeCronFormState({ ...state.cronForm, ...patch })),
                 onRefresh: () => state.loadCron(),
@@ -932,16 +933,33 @@ export function renderApp(state: AppViewState) {
                 entries: state.logsEntries,
                 filterText: state.logsFilterText,
                 levelFilters: state.logsLevelFilters,
+                subsystemFilters: state.logsSubsystemFilters,
+                availableSubsystems: [
+                  ...new Set(state.logsEntries.map((e) => e.subsystem).filter(Boolean) as string[]),
+                ].toSorted(),
                 autoFollow: state.logsAutoFollow,
                 truncated: state.logsTruncated,
                 onFilterTextChange: (next) => (state.logsFilterText = next),
                 onLevelToggle: (level, enabled) => {
                   state.logsLevelFilters = { ...state.logsLevelFilters, [level]: enabled };
                 },
+                onSubsystemToggle: (sub) => {
+                  const next = new Set(state.logsSubsystemFilters);
+                  if (next.has(sub)) {
+                    next.delete(sub);
+                  } else {
+                    next.add(sub);
+                  }
+                  state.logsSubsystemFilters = next;
+                },
+                onSubsystemClear: () => {
+                  state.logsSubsystemFilters = new Set();
+                },
                 onToggleAutoFollow: (next) => (state.logsAutoFollow = next),
                 onRefresh: () => loadLogs(state, { reset: true }),
                 onExport: (lines, label) => state.exportLogs(lines, label),
                 onScroll: (event) => state.handleLogsScroll(event),
+                activeCronRuns: state.activeCronRuns,
               })
             : nothing
         }

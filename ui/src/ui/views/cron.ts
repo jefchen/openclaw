@@ -4,6 +4,7 @@ import { pathForTab } from "../navigation.ts";
 import { formatCronSchedule, formatNextRun } from "../presenter.ts";
 import type { ChannelUiMetaEntry, CronJob, CronRunLogEntry, CronStatus } from "../types.ts";
 import type { CronFormState } from "../ui-types.ts";
+import { renderActiveCrons, type ActiveCronRun } from "./logs-active-crons.ts";
 
 export type CronProps = {
   basePath: string;
@@ -18,6 +19,7 @@ export type CronProps = {
   channelMeta?: ChannelUiMetaEntry[];
   runsJobId: string | null;
   runs: CronRunLogEntry[];
+  activeCronRuns: ActiveCronRun[];
   onFormChange: (patch: Partial<CronFormState>) => void;
   onRefresh: () => void;
   onAdd: () => void;
@@ -85,6 +87,7 @@ export function renderCron(props: CronProps) {
             <div class="stat-value">${formatNextRun(props.status?.nextWakeAtMs ?? null)}</div>
           </div>
         </div>
+        ${renderActiveCrons(props.activeCronRuns)}
         <div class="row" style="margin-top: 12px;">
           <button class="btn" ?disabled=${props.loading} @click=${props.onRefresh}>
             ${props.loading ? "Refreshing…" : "Refresh"}
@@ -188,20 +191,31 @@ export function renderCron(props: CronProps) {
             >
               <option value="systemEvent">System event</option>
               <option value="agentTurn">Agent turn</option>
+              <option value="usageReport">Usage report</option>
             </select>
           </label>
         </div>
-        <label class="field" style="margin-top: 12px;">
-          <span>${props.form.payloadKind === "systemEvent" ? "System text" : "Agent message"}</span>
-          <textarea
-            .value=${props.form.payloadText}
-            @input=${(e: Event) =>
-              props.onFormChange({
-                payloadText: (e.target as HTMLTextAreaElement).value,
-              })}
-            rows="4"
-          ></textarea>
-        </label>
+        ${
+          props.form.payloadKind !== "usageReport"
+            ? html`
+                <label class="field" style="margin-top: 12px;">
+                  <span>${props.form.payloadKind === "systemEvent" ? "System text" : "Agent message"}</span>
+                  <textarea
+                    .value=${props.form.payloadText}
+                    @input=${(e: Event) =>
+                      props.onFormChange({
+                        payloadText: (e.target as HTMLTextAreaElement).value,
+                      })}
+                    rows="4"
+                  ></textarea>
+                </label>
+              `
+            : html`
+                <div class="muted" style="margin-top: 12px; font-size: 12px">
+                  Generates a daily token/cost usage summary automatically.
+                </div>
+              `
+        }
         <div class="form-grid" style="margin-top: 12px;">
           <label class="field">
             <span>Delivery</span>
@@ -485,6 +499,13 @@ function renderJobPayload(job: CronJob) {
     return html`<div class="cron-job-detail">
       <span class="cron-job-detail-label">System</span>
       <span class="muted cron-job-detail-value">${job.payload.text}</span>
+    </div>`;
+  }
+
+  if (job.payload.kind === "usageReport") {
+    return html`<div class="cron-job-detail">
+      <span class="cron-job-detail-label">Report</span>
+      <span class="muted cron-job-detail-value">Daily usage report${job.payload.daysBack && job.payload.daysBack > 1 ? ` (${job.payload.daysBack} days)` : ""}</span>
     </div>`;
   }
 

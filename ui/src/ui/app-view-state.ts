@@ -184,6 +184,8 @@ export type AppViewState = {
   usageLogFilterTools: string[];
   usageLogFilterHasTools: boolean;
   usageLogFilterQuery: string;
+  usageBreakdownTab: "agent" | "model" | "channel" | "tool";
+  activeCronRuns: Array<{ jobId: string; jobName: string; startedAt: number; sessionKey?: string }>;
   cronLoading: boolean;
   cronJobs: CronJob[];
   cronStatus: CronStatus | null;

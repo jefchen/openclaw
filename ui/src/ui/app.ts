@@ -252,6 +252,7 @@ export class OpenClawApp extends LitElement {
   @state() usageSelectedDays: string[] = [];
   @state() usageSelectedHours: number[] = [];
   @state() usageChartMode: "tokens" | "cost" = "tokens";
+  @state() usageBreakdownTab: "agent" | "model" | "channel" | "tool" = "model";
   @state() usageDailyChartMode: "total" | "by-type" = "by-type";
   @state() usageTimeSeriesMode: "cumulative" | "per-turn" = "per-turn";
   @state() usageTimeSeriesBreakdownMode: "total" | "by-type" = "by-type";
@@ -299,6 +300,12 @@ export class OpenClawApp extends LitElement {
   @state() cronRunsJobId: string | null = null;
   @state() cronRuns: CronRunLogEntry[] = [];
   @state() cronBusy = false;
+  @state() activeCronRuns: Array<{
+    jobId: string;
+    jobName: string;
+    startedAt: number;
+    sessionKey?: string;
+  }> = [];
 
   @state() skillsLoading = false;
   @state() skillsReport: SkillStatusReport | null = null;
@@ -328,6 +335,7 @@ export class OpenClawApp extends LitElement {
   };
   @state() logsAutoFollow = true;
   @state() logsTruncated = false;
+  @state() logsSubsystemFilters: Set<string> = new Set();
   @state() logsCursor: number | null = null;
   @state() logsLastFetchAt: number | null = null;
   @state() logsLimit = 500;

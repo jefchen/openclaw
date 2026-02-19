@@ -1,5 +1,6 @@
 import { html, nothing } from "lit";
 import type { LogEntry, LogLevel } from "../types.ts";
+import { renderActiveCrons, type ActiveCronRun } from "./logs-active-crons.ts";
 
 const LEVELS: LogLevel[] = ["trace", "debug", "info", "warn", "error", "fatal"];
 
@@ -10,14 +11,20 @@ export type LogsProps = {
   entries: LogEntry[];
   filterText: string;
   levelFilters: Record<LogLevel, boolean>;
+  subsystemFilters: Set<string>;
+  availableSubsystems: string[];
   autoFollow: boolean;
   truncated: boolean;
   onFilterTextChange: (next: string) => void;
   onLevelToggle: (level: LogLevel, enabled: boolean) => void;
+  onSubsystemToggle: (subsystem: string) => void;
+  onSubsystemClear: () => void;
   onToggleAutoFollow: (next: boolean) => void;
   onRefresh: () => void;
   onExport: (lines: string[], label: string) => void;
   onScroll: (event: Event) => void;
+  activeCronRuns: ActiveCronRun[];
+  onNavigateToCron?: () => void;
 };
 
 function formatTime(value?: string | null) {
@@ -45,13 +52,17 @@ function matchesFilter(entry: LogEntry, needle: string) {
 export function renderLogs(props: LogsProps) {
   const needle = props.filterText.trim().toLowerCase();
   const levelFiltered = LEVELS.some((level) => !props.levelFilters[level]);
+  const subsystemFiltered = props.subsystemFilters.size > 0;
   const filtered = props.entries.filter((entry) => {
     if (entry.level && !props.levelFilters[entry.level]) {
       return false;
     }
+    if (subsystemFiltered && !props.subsystemFilters.has(entry.subsystem ?? "")) {
+      return false;
+    }
     return matchesFilter(entry, needle);
   });
-  const exportLabel = needle || levelFiltered ? "filtered" : "visible";
+  const exportLabel = needle || levelFiltered || subsystemFiltered ? "filtered" : "visible";
 
   return html`
     <section class="card">
@@ -115,6 +126,33 @@ export function renderLogs(props: LogsProps) {
       </div>
 
       ${
+        props.availableSubsystems.length > 0
+          ? html`
+            <div style="margin-top: 8px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+              <span class="muted" style="font-size: 12px;">Subsystem:</span>
+              ${props.availableSubsystems.map(
+                (sub) => html`
+                  <button
+                    class="chip ${props.subsystemFilters.has(sub) ? "active" : ""}"
+                    style="cursor: pointer; font-size: 11px; padding: 2px 8px;"
+                    @click=${() => props.onSubsystemToggle(sub)}
+                  >${sub}</button>
+                `,
+              )}
+              ${
+                subsystemFiltered
+                  ? html`<button
+                      class="chip"
+                      style="cursor: pointer; font-size: 11px; padding: 2px 8px; opacity: 0.6;"
+                      @click=${props.onSubsystemClear}
+                    >Clear</button>`
+                  : nothing
+              }
+            </div>`
+          : nothing
+      }
+
+      ${
         props.file
           ? html`<div class="muted" style="margin-top: 10px;">File: ${props.file}</div>`
           : nothing
@@ -132,6 +170,7 @@ export function renderLogs(props: LogsProps) {
           : nothing
       }
 
+      ${renderActiveCrons(props.activeCronRuns, props.onNavigateToCron)}
       <div class="log-stream" style="margin-top: 12px;" @scroll=${props.onScroll}>
         ${
           filtered.length === 0
