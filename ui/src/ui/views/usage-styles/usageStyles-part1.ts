@@ -1,18 +1,124 @@
 export const usageStylesPart1 = `
   .usage-page-header {
-    margin: 4px 0 12px;
+    margin: 4px 0 16px;
   }
   .usage-page-title {
-    font-size: 28px;
+    font-size: 32px;
     font-weight: 700;
-    letter-spacing: -0.02em;
-    margin-bottom: 4px;
+    letter-spacing: -0.03em;
+    margin-bottom: 6px;
+    background: linear-gradient(135deg, var(--text-strong) 0%, var(--accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
   .usage-page-subtitle {
-    font-size: 13px;
+    font-size: 14px;
     color: var(--muted);
     margin: 0 0 12px;
   }
+
+  /* ===== SYSTEM STATUS STRIP ===== */
+  @keyframes status-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+  .system-status-strip {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, rgba(255, 92, 92, 0.06) 0%, rgba(20, 184, 166, 0.06) 100%);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    margin-bottom: 16px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .system-status-strip:hover {
+    border-color: var(--border-strong);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  }
+  .system-status-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    min-width: 60px;
+  }
+  .system-status-gauges {
+    display: flex;
+    gap: 20px;
+    flex: 1;
+  }
+  .system-status-gauge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 14px 6px 6px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .system-status-gauge:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  .system-status-gauge svg {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+  }
+  .system-status-gauge-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .system-status-gauge-value {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-strong);
+    letter-spacing: -0.02em;
+  }
+  .system-status-gauge-label {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 500;
+  }
+  .system-status-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 11px;
+    color: var(--muted);
+    margin-left: auto;
+  }
+  .system-status-live {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: rgba(34, 197, 94, 0.12);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    color: #22c55e;
+    font-weight: 600;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .system-status-live::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #22c55e;
+    animation: status-pulse 2s ease-in-out infinite;
+  }
+
   /* ===== FILTERS & HEADER ===== */
   .usage-filters-inline {
     display: flex;
@@ -154,29 +260,31 @@ export const usageStylesPart1 = `
     background: var(--bg-secondary);
     color: var(--text);
     box-shadow: none;
-    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
   }
   .usage-action-btn:hover {
     background: var(--bg);
     border-color: var(--border-strong);
+    transform: translateY(-1px);
   }
   .usage-primary-btn {
-    background: #ff4d4d;
+    background: linear-gradient(135deg, #ff5c5c 0%, #ff4d4d 100%);
     color: #fff;
     border-color: #ff4d4d;
-    box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.12);
+    box-shadow: 0 2px 8px rgba(255, 77, 77, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.12);
   }
   .btn.usage-primary-btn {
-    background: #ff4d4d !important;
+    background: linear-gradient(135deg, #ff5c5c 0%, #ff4d4d 100%) !important;
     border-color: #ff4d4d !important;
     color: #fff !important;
   }
   .usage-primary-btn:hover {
-    background: #e64545;
+    background: linear-gradient(135deg, #ff6b6b 0%, #e64545 100%);
     border-color: #e64545;
+    box-shadow: 0 4px 16px rgba(255, 77, 77, 0.35), inset 0 -1px 0 rgba(0, 0, 0, 0.12);
   }
   .btn.usage-primary-btn:hover {
-    background: #e64545 !important;
+    background: linear-gradient(135deg, #ff6b6b 0%, #e64545 100%) !important;
     border-color: #e64545 !important;
   }
   .usage-primary-btn:disabled {
@@ -222,10 +330,11 @@ export const usageStylesPart1 = `
     font-size: 11px;
     color: var(--text);
     cursor: pointer;
-    transition: background 0.15s;
+    transition: background 0.15s, transform 0.15s;
   }
   .usage-query-suggestion:hover {
     background: var(--bg-hover);
+    transform: translateY(-1px);
   }
   .usage-filter-row {
     display: flex;
@@ -242,6 +351,10 @@ export const usageStylesPart1 = `
     background: var(--bg);
     font-size: 12px;
     min-width: 140px;
+    transition: border-color 0.15s ease;
+  }
+  details.usage-filter-select:hover {
+    border-color: var(--border-strong);
   }
   details.usage-filter-select summary {
     cursor: pointer;
@@ -267,7 +380,7 @@ export const usageStylesPart1 = `
     border: 1px solid var(--border);
     border-radius: 10px;
     padding: 10px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
     min-width: 220px;
     z-index: 20;
   }
@@ -332,7 +445,7 @@ export const usageStylesPart1 = `
     position: sticky;
     top: 12px;
     z-index: 6;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
   }
   .usage-pin-btn {
     display: inline-flex;
@@ -345,6 +458,10 @@ export const usageStylesPart1 = `
     font-size: 11px;
     color: var(--text);
     cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .usage-pin-btn:hover {
+    border-color: var(--border-strong);
   }
   .usage-pin-btn.active {
     background: var(--accent-subtle);
@@ -373,16 +490,21 @@ export const usageStylesPart1 = `
     display: inline-flex;
     align-items: baseline;
     gap: 6px;
-    padding: 2px 8px;
+    padding: 4px 10px;
     border-radius: 999px;
     border: 1px solid var(--border);
-    background: transparent;
+    background: rgba(255, 255, 255, 0.03);
     font-size: 11px;
     color: var(--muted);
+    transition: border-color 0.15s ease;
+  }
+  .usage-metric-badge:hover {
+    border-color: var(--border-strong);
   }
   .usage-metric-badge strong {
-    font-size: 12px;
-    color: var(--text);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-strong);
   }
   .usage-controls {
     display: flex;
@@ -444,6 +566,10 @@ export const usageStylesPart1 = `
     border: 1px solid var(--border);
     background: var(--bg);
     font-size: 12px;
+    transition: border-color 0.15s ease;
+  }
+  .usage-export-button:hover {
+    border-color: var(--border-strong);
   }
   .usage-export-popover {
     position: absolute;
@@ -453,7 +579,7 @@ export const usageStylesPart1 = `
     border: 1px solid var(--border);
     border-radius: 10px;
     padding: 8px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
     min-width: 160px;
     z-index: 10;
   }
@@ -469,18 +595,30 @@ export const usageStylesPart1 = `
     border: 1px solid var(--border);
     background: var(--bg-secondary);
     font-size: 12px;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+  .usage-export-item:hover {
+    background: var(--bg-hover);
+    border-color: var(--border-strong);
   }
   .usage-summary-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 12px;
-    margin-top: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+    gap: 14px;
+    margin-top: 16px;
   }
   .usage-summary-card {
-    padding: 12px;
-    border-radius: 8px;
+    padding: 16px;
+    border-radius: 12px;
     background: var(--bg-secondary);
     border: 1px solid var(--border);
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+  }
+  .usage-summary-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    border-color: var(--border-strong);
   }
   .usage-mosaic {
     margin-top: 16px;
@@ -521,7 +659,7 @@ export const usageStylesPart1 = `
     justify-content: space-between;
   }
   .usage-mosaic-total {
-    font-size: 20px;
+    font-size: 22px;
     font-weight: 700;
   }
   .usage-daypart-grid {
@@ -538,6 +676,11 @@ export const usageStylesPart1 = `
     display: flex;
     flex-direction: column;
     gap: 4px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .usage-daypart-cell:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 77, 77, 0.1);
   }
   .usage-daypart-label {
     font-size: 12px;
@@ -557,7 +700,10 @@ export const usageStylesPart1 = `
     background: rgba(255, 77, 77, 0.1);
     border: 1px solid rgba(255, 77, 77, 0.2);
     cursor: pointer;
-    transition: border-color 0.15s, box-shadow 0.15s;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+  }
+  .usage-hour-cell:hover {
+    transform: scaleY(1.1);
   }
   .usage-hour-cell.selected {
     border-color: rgba(255, 77, 77, 0.8);
@@ -633,18 +779,19 @@ export const usageStylesPart1 = `
     cursor: help;
   }
   .usage-summary-value {
-    font-size: 16px;
-    font-weight: 600;
+    font-size: 22px;
+    font-weight: 700;
     color: var(--text-strong);
+    letter-spacing: -0.02em;
   }
   .usage-summary-value.good {
-    color: #1f8f4e;
+    color: #22c55e;
   }
   .usage-summary-value.warn {
-    color: #c57a00;
+    color: #f59e0b;
   }
   .usage-summary-value.bad {
-    color: #c9372c;
+    color: #ef4444;
   }
   .usage-summary-hint {
     font-size: 10px;
@@ -662,7 +809,7 @@ export const usageStylesPart1 = `
   .usage-summary-sub {
     font-size: 11px;
     color: var(--muted);
-    margin-top: 4px;
+    margin-top: 6px;
   }
   .usage-list {
     display: flex;

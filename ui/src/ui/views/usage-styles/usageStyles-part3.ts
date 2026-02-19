@@ -1,5 +1,5 @@
 export const usageStylesPart3 = `
-  
+
   /* ===== COMPACT DAILY CHART ===== */
   .daily-chart-compact {
     margin-bottom: 16px;
@@ -11,7 +11,7 @@ export const usageStylesPart3 = `
     height: 100px;
     padding-bottom: 20px;
   }
-  
+
   /* ===== COMPACT COST BREAKDOWN ===== */
   .cost-breakdown-compact {
     padding: 0;
@@ -29,7 +29,7 @@ export const usageStylesPart3 = `
   .cost-breakdown-compact .cost-breakdown-note {
     display: none;
   }
-  
+
   /* ===== SESSIONS CARD ===== */
   .sessions-card {
     /* inherits background, border, shadow from .card */
@@ -101,7 +101,7 @@ export const usageStylesPart3 = `
   .sessions-card .session-bars {
     max-height: 280px;
     background: var(--bg);
-    border-radius: 6px;
+    border-radius: 8px;
     border: 1px solid var(--border);
     margin: 0;
     overflow-y: auto;
@@ -109,10 +109,10 @@ export const usageStylesPart3 = `
   }
   .sessions-card .session-bar-row {
     padding: 6px 8px;
-    border-radius: 6px;
+    border-radius: 8px;
     margin-bottom: 3px;
     border: 1px solid transparent;
-    transition: all 0.15s;
+    transition: all 0.2s ease;
   }
   .sessions-card .session-bar-row:hover {
     border-color: var(--border);
@@ -144,7 +144,7 @@ export const usageStylesPart3 = `
   .sessions-clear-btn {
     margin-left: auto;
   }
-  
+
   /* ===== EMPTY DETAIL STATE ===== */
   .session-detail-empty {
     margin-top: 18px;
@@ -182,12 +182,13 @@ export const usageStylesPart3 = `
   .session-detail-empty-feature .icon {
     font-size: 16px;
   }
-  
+
   /* ===== SESSION DETAIL PANEL ===== */
   .session-detail-panel {
     margin-top: 12px;
     /* inherits background, border-radius, shadow from .card */
     border: 2px solid var(--accent) !important;
+    box-shadow: 0 0 0 4px rgba(255, 92, 92, 0.08), 0 8px 32px rgba(0, 0, 0, 0.12);
   }
   .session-detail-header {
     display: flex;
@@ -220,8 +221,8 @@ export const usageStylesPart3 = `
     padding: 2px 8px;
     font-size: 16px;
     line-height: 1;
-    border-radius: 4px;
-    transition: background 0.15s, color 0.15s;
+    border-radius: 6px;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
   }
   .session-close-btn:hover {
     background: var(--bg-hover);
@@ -244,14 +245,19 @@ export const usageStylesPart3 = `
   .session-summary-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 8px;
+    gap: 10px;
     margin-bottom: 12px;
   }
   .session-summary-card {
     border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 8px;
+    border-radius: 10px;
+    padding: 10px;
     background: var(--bg-secondary);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .session-summary-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   }
   .session-summary-title {
     font-size: 11px;
@@ -259,8 +265,8 @@ export const usageStylesPart3 = `
     margin-bottom: 4px;
   }
   .session-summary-value {
-    font-size: 14px;
-    font-weight: 600;
+    font-size: 16px;
+    font-weight: 700;
   }
   .session-summary-meta {
     font-size: 11px;
@@ -295,7 +301,7 @@ export const usageStylesPart3 = `
     flex-direction: column;
     gap: 8px;
     background: var(--bg);
-    border-radius: 6px;
+    border-radius: 8px;
     border: 1px solid var(--border);
     padding: 12px;
   }
@@ -353,11 +359,11 @@ export const usageStylesPart3 = `
     border-color: var(--border-strong);
     background: var(--bg);
   }
-  
+
   /* ===== COMPACT TIMESERIES ===== */
   .session-timeseries-compact {
     background: var(--bg);
-    border-radius: 6px;
+    border-radius: 8px;
     border: 1px solid var(--border);
     padding: 12px;
     margin: 0;
@@ -372,7 +378,7 @@ export const usageStylesPart3 = `
     font-size: 11px;
     margin-top: 8px;
   }
-  
+
   /* ===== COMPACT CONTEXT ===== */
   .context-weight-compact {
     background: var(--bg);
@@ -408,7 +414,7 @@ export const usageStylesPart3 = `
     font-size: 12px;
     padding: 6px 10px;
   }
-  
+
   /* ===== COMPACT LOGS ===== */
   .session-logs-compact {
     background: var(--bg);
@@ -478,6 +484,12 @@ export const usageStylesPart3 = `
     .session-detail-row {
       grid-template-columns: 1fr;
     }
+    .system-status-strip {
+      flex-wrap: wrap;
+    }
+    .system-status-gauges {
+      flex-wrap: wrap;
+    }
   }
   @media (max-width: 600px) {
     .session-bar-label {
@@ -507,6 +519,15 @@ export const usageStylesPart3 = `
     }
     .usage-hour-cell {
       height: 22px;
+    }
+    .purpose-breakdown-content {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .purpose-donut {
+      width: 120px;
+      height: 120px;
+      align-self: center;
     }
   }
 
